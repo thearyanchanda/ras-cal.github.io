@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ras-cal.com</title>
+  <title>PDF Viewer</title>
 
   <style>
     html, body {
@@ -23,7 +23,6 @@
       background: black;
     }
 
-    /* Wrapper ensures canvas + annotation layer share coordinates */
     #pdf-wrapper {
       position: relative;
     }
@@ -39,11 +38,10 @@
       pointer-events: auto;
     }
 
-    /* Hide PDF.js link visuals */
+    /* Optional: visualize links (remove later) */
     .annotationLayer a {
-      border: none !important;
-      background: transparent !important;
-      text-decoration: none !important;
+      outline: 2px solid rgba(0, 255, 0, 0.6);
+      background: rgba(0, 255, 0, 0.15);
       cursor: pointer;
     }
   </style>
@@ -69,6 +67,11 @@
 
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
+
+      // 🔗 REAL LINK SERVICE
+      const linkService = new pdfjsLib.PDFLinkService();
+      linkService.setDocument(pdf);
+
       const page = await pdf.getPage(1);
 
       const viewport = page.getViewport({ scale: 1 });
@@ -80,38 +83,34 @@
 
       const scaledViewport = page.getViewport({ scale });
 
-      // Resize canvas
       canvas.width = scaledViewport.width;
       canvas.height = scaledViewport.height;
-      canvas.style.width = `${scaledViewport.width}px`;
-      canvas.style.height = `${scaledViewport.height}px`;
 
-      // Render PDF page
       await page.render({
         canvasContext: ctx,
         viewport: scaledViewport
       }).promise;
 
-      // Clear and resize annotation layer
       annotationLayer.innerHTML = '';
       annotationLayer.style.width = `${scaledViewport.width}px`;
       annotationLayer.style.height = `${scaledViewport.height}px`;
 
       const annotations = await page.getAnnotations();
 
-      // Render clickable links
       pdfjsLib.AnnotationLayer.render({
         annotations,
         div: annotationLayer,
         page,
         viewport: scaledViewport,
-        linkService: new pdfjsLib.SimpleLinkService()
+        linkService
       });
 
-      // Force links to open in new tab
+      // Force external URLs to open in new tab
       annotationLayer.querySelectorAll('a[href]').forEach(link => {
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
+        if (link.href.startsWith('http')) {
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+        }
       });
     }
 
