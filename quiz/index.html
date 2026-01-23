@@ -76,14 +76,15 @@
 
   <!-- Centered form overlay -->
   <form class="pdf-form" id="height-form">
-    <h3>Enter Your Height</h3>
+    <h1Q</h1>
+    <h3>are you taller than ras-cal?</h3>
   
     <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <input type="number" id="feet" min="0" placeholder="Feet" required />
+    <input type="number" id="feet" min="0" placeholder="Feet" required />
       <input type="number" id="inches" min="0" max="11" placeholder="Inches" required />
     </div>
   
-    <button type="submit">Check</button>
+    <button type="submit">Check</button>  
   
     <p id="height-result" style="margin-top:10px; font-weight:bold;"></p>
 </form>
@@ -164,14 +165,14 @@ form.addEventListener('submit', e => {
   const inches = parseInt(document.getElementById('inches').value, 10);
 
   const totalInches = feet * 12 + inches;
-  const reference = 5 * 12 + 7; // 5'7"
+  const reference = 6 * 12 + 4; // 5'7"
 
   if (totalInches > reference) {
-    result.textContent = "You're taller than 5′7″.";
+    result.textContent = "you MIGHT be taller than ras-cal";
   } else if (totalInches < reference) {
-    result.textContent = "You're shorter than 5′7″.";
+    result.textContent = "you're short but don't feel bad, ras-cal's just really tall";
   } else {
-    result.textContent = "You're exactly 5′7″.";
+    result.textContent = "oh you think you're tall huh";
   }
 });
 
