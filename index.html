@@ -1,118 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Azure Falcon</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <style>
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+<meta charset="UTF-8">
+<title>Silver Horizon</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-    #pdf-wrapper {
-      position: relative;
-      display: inline-block;
-    }
+  #pdf-wrapper {
+    position: relative;
+  }
 
-    canvas {
-      display: block;
-    }
+  canvas, .annotationLayer {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 
-    .annotationLayer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      pointer-events: auto;
-    }
-
-    .annotationLayer a {
-      border: none;
-      text-decoration: underline;
-      color: #00f;
-      background: transparent;
-      cursor: pointer;
-      display: block;
-      position: absolute;
-    }
-  </style>
+  .annotationLayer a {
+    border: none;
+    text-decoration: underline;
+    color: #00f;
+    background: transparent;
+    cursor: pointer;
+    position: absolute;
+  }
+</style>
 </head>
 <body>
-  <div id="pdf-wrapper">
-    <canvas id="pdf-canvas"></canvas>
-    <div id="annotation-layer" class="annotationLayer"></div>
-  </div>
+<div id="pdf-wrapper">
+  <canvas id="pdf-canvas"></canvas>
+  <div id="annotation-layer" class="annotationLayer"></div>
+</div>
 
-  <script src="pdf.min.js"></script>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+<script src="pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
-    const url = 'cover.pdf';
-    const canvas = document.getElementById('pdf-canvas');
-    const ctx = canvas.getContext('2d');
-    const annotationLayer = document.getElementById('annotation-layer');
-    const pdfWrapper = document.getElementById('pdf-wrapper');
+  const url = 'cover.pdf';
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  const annotationLayer = document.getElementById('annotation-layer');
+  const wrapper = document.getElementById('pdf-wrapper');
 
-    async function renderPDF() {
-      const pdf = await pdfjsLib.getDocument(url).promise;
-      const page = await pdf.getPage(1);
+  async function renderPDF() {
+    const pdf = await pdfjsLib.getDocument(url).promise;
+    const page = await pdf.getPage(1);
 
-      const viewport = page.getViewport({ scale: 1 });
-      const scale = Math.min(
-        window.innerWidth / viewport.width,
-        window.innerHeight / viewport.height
-      );
-      const scaled = page.getViewport({ scale });
+    const viewport = page.getViewport({ scale: 1 });
+    const scale = Math.min(
+      window.innerWidth / viewport.width,
+      window.innerHeight / viewport.height
+    );
+    const scaled = page.getViewport({ scale });
 
-      // Resize canvas
-      canvas.width = scaled.width;
-      canvas.height = scaled.height;
-      canvas.style.width = `${scaled.width}px`;
-      canvas.style.height = `${scaled.height}px`;
+    // Set canvas size
+    canvas.width = scaled.width;
+    canvas.height = scaled.height;
 
-      // Resize wrapper & annotation layer
-      pdfWrapper.style.width = `${scaled.width}px`;
-      pdfWrapper.style.height = `${scaled.height}px`;
-      annotationLayer.style.width = `${scaled.width}px`;
-      annotationLayer.style.height = `${scaled.height}px`;
+    canvas.style.width = `${scaled.width}px`;
+    canvas.style.height = `${scaled.height}px`;
 
-      // Render PDF page
-      await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+    annotationLayer.style.width = `${scaled.width}px`;
+    annotationLayer.style.height = `${scaled.height}px`;
 
-      // Clear old annotations
-      annotationLayer.innerHTML = '';
+    wrapper.style.width = `${scaled.width}px`;
+    wrapper.style.height = `${scaled.height}px`;
 
-      // Get annotations
-      const annotations = await page.getAnnotations({ intent: 'display' });
+    // Render PDF page
+    await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-      // Render clickable links at correct positions
-      annotations.forEach(ann => {
-        if (ann.subtype === 'Link' && ann.url) {
-          const rect = pdfjsLib.Util.normalizeRect(ann.rect);
-          const a = document.createElement('a');
-          a.href = ann.url;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
+    // Clear previous annotations
+    annotationLayer.innerHTML = '';
 
-          // Flip y-coordinates because PDF origin is bottom-left
-          const view = scaled;
-          a.style.left = `${rect[0] * view.scale}px`;
-          a.style.top = `${(view.height - rect[3]) * view.scale}px`;
-          a.style.width = `${(rect[2] - rect[0]) * view.scale}px`;
-          a.style.height = `${(rect[3] - rect[1]) * view.scale}px`;
+    // Get annotations
+    const annotations = await page.getAnnotations({ intent: 'display' });
 
-          annotationLayer.appendChild(a);
-        }
-      });
-    }
+    // Render clickable links
+    annotations.forEach(ann => {
+      if (ann.subtype === 'Link' && ann.url) {
+        const rect = pdfjsLib.Util.normalizeRect(ann.rect);
 
-    renderPDF();
-    window.addEventListener('resize', renderPDF);
-  </script>
+        const a = document.createElement('a');
+        a.href = ann.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+
+        const view = scaled;
+
+        // PDF origin is bottom-left
+        a.style.left = `${rect[0] * view.scale}px`;
+        a.style.top = `${(view.height - rect[3]) * view.scale}px`;
+        a.style.width = `${(rect[2] - rect[0]) * view.scale}px`;
+        a.style.height = `${(rect[3] - rect[1]) * view.scale}px`;
+
+        annotationLayer.appendChild(a);
+      }
+    });
+  }
+
+  renderPDF();
+  window.addEventListener('resize', renderPDF);
+</script>
 </body>
 </html>
