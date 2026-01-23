@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>PDF Viewer</title>
-
   <style>
     html, body {
       margin: 0;
@@ -15,23 +13,28 @@
       overflow: hidden;
     }
 
-    .viewer {
+    .pdf-container {
       width: 100vw;
       height: 100vh;
-      border: none;
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: black;
+    }
+
+    embed {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
 </head>
 <body>
-
-  <!-- Replace "document.pdf" with your PDF file -->
-  <iframe
-    src="cover.pdf#toolbar=0&navpanes=0&scrollbar=0&view=FitH"
-    class="viewer"
-    loading="lazy"
-  ></iframe>
-
+  <div class="pdf-container">
+    <embed
+      src="cover.pdf#toolbar=0&navpanes=0&scrollbar=0&view=Fit"
+      type="application/pdf"
+    />
+  </div>
 </body>
 </html>
