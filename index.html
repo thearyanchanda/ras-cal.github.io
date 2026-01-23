@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PDF Viewer</title>
-  <!-- Favicon -->
+  <title>Amber Falcon</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-
   <style>
     html, body {
       margin: 0;
@@ -13,6 +11,13 @@
       height: 100%;
       background: black;
       overflow: hidden;
+      font-family: sans-serif;
+      color: white;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 0.5em 0;
     }
 
     #pdf-wrapper {
@@ -35,6 +40,7 @@
   </style>
 </head>
 <body>
+  <h1>Amber Falcon</h1>
   <div id="pdf-wrapper">
     <canvas id="pdf-canvas"></canvas>
     <div id="annotation-layer" class="annotationLayer"></div>
@@ -43,12 +49,11 @@
   <!-- Using ES Module PDF.js -->
   <script type="module">
     import * as pdfjsLib from './pdf.mjs';
-    import { PDFLinkService } from './pdf.mjs';
 
-    // Point to the worker module
+    // Worker module path
     pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
 
-    const url = 'cover.pdf'; // your local PDF
+    const url = 'cover.pdf'; // your PDF file
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
     const annotationLayer = document.getElementById('annotation-layer');
@@ -57,7 +62,8 @@
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
 
-      const linkService = new PDFLinkService();
+      // Use PDFLinkService from pdfjsLib
+      const linkService = new pdfjsLib.PDFLinkService();
       linkService.setDocument(pdf);
 
       const page = await pdf.getPage(1);
@@ -67,33 +73,24 @@
         window.innerWidth / viewport.width,
         window.innerHeight / viewport.height
       );
-
       const scaled = page.getViewport({ scale });
 
-      // Resize canvas
       canvas.width = scaled.width;
       canvas.height = scaled.height;
       canvas.style.width = `${scaled.width}px`;
       canvas.style.height = `${scaled.height}px`;
 
-      // Resize wrapper
       pdfWrapper.style.width = `${scaled.width}px`;
       pdfWrapper.style.height = `${scaled.height}px`;
 
-      // Render PDF page
-      await page.render({
-        canvasContext: ctx,
-        viewport: scaled
-      }).promise;
+      await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-      // Prepare annotation layer
       annotationLayer.innerHTML = '';
       annotationLayer.style.width = `${scaled.width}px`;
       annotationLayer.style.height = `${scaled.height}px`;
 
       const annotations = await page.getAnnotations();
 
-      // Render clickable annotations
       pdfjsLib.AnnotationLayer.render({
         annotations,
         div: annotationLayer,
@@ -102,7 +99,7 @@
         linkService
       });
 
-      // Ensure links open in a new tab
+      // Open links in a new tab
       annotationLayer.querySelectorAll('a[href]').forEach(a => {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
