@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Obsidian Falcon</title>
+  <title>ras.cal</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     html, body {
@@ -11,7 +11,6 @@
       height: 100%;
       background: black;
       overflow: hidden;
-      font-family: sans-serif;
     }
 
     #pdf-wrapper {
@@ -31,6 +30,13 @@
       left: 0;
       pointer-events: auto;
     }
+
+    .annotationLayer a {
+      border: none;
+      text-decoration: none;
+      background: transparent;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -39,12 +45,11 @@
     <div id="annotation-layer" class="annotationLayer"></div>
   </div>
 
-  <!-- UMD PDF.js v2.x -->
   <script src="pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
-    const url = 'cover.pdf'; // Your local PDF
+    const url = 'cover.pdf';
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
     const annotationLayer = document.getElementById('annotation-layer');
@@ -52,11 +57,6 @@
 
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
-
-      // PDFLinkService enables clickable links
-      const linkService = new pdfjsLib.PDFLinkService();
-      linkService.setDocument(pdf);
-
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1 });
 
@@ -72,32 +72,29 @@
       canvas.style.width = `${scaled.width}px`;
       canvas.style.height = `${scaled.height}px`;
 
-      // Resize wrapper
       pdfWrapper.style.width = `${scaled.width}px`;
       pdfWrapper.style.height = `${scaled.height}px`;
 
-      // Render PDF page
-      await page.render({
-        canvasContext: ctx,
-        viewport: scaled
-      }).promise;
+      // Render page
+      await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-      // Clear old annotations
+      // Clear annotation layer
       annotationLayer.innerHTML = '';
       annotationLayer.style.width = `${scaled.width}px`;
       annotationLayer.style.height = `${scaled.height}px`;
 
-      // Get and render annotations (links)
+      // Get annotations
       const annotations = await page.getAnnotations();
+
+      // Render annotations (links clickable)
       pdfjsLib.AnnotationLayer.render({
         annotations,
         div: annotationLayer,
         page,
-        viewport: scaled,
-        linkService
+        viewport: scaled
       });
 
-      // Make links open in a new tab
+      // Make all links open in a new tab
       annotationLayer.querySelectorAll('a[href]').forEach(a => {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
