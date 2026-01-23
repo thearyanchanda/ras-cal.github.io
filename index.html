@@ -15,47 +15,67 @@
     }
 
     #container {
+      position: relative;
       width: 100vw;
       height: 100vh;
+      background: black;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: black;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #container.visible {
+      opacity: 1;
     }
 
     canvas {
       display: block;
-      background: black;
+    }
+
+    .annotationLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: auto;
+    }
+
+    .annotationLayer a {
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      background: transparent;
     }
   </style>
 </head>
 <body>
   <div id="container">
     <canvas id="pdf-canvas"></canvas>
+    <div id="annotation-layer" class="annotationLayer"></div>
   </div>
 
-  <!-- PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     const url = 'cover.pdf';
 
+    const container = document.getElementById('container');
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
+    const annotationLayer = document.getElementById('annotation-layer');
 
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    pdfjsLib.getDocument(url).promise.then(pdf => {
-      return pdf.getPage(1);
-    }).then(page => {
+    async function renderPDF() {
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      const page = await pdf.getPage(1);
+
       const viewport = page.getViewport({ scale: 1 });
 
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-
       const scale = Math.min(
-        screenWidth / viewport.width,
-        screenHeight / viewport.height
+        window.innerWidth / viewport.width,
+        window.innerHeight / viewport.height
       );
 
       const scaledViewport = page.getViewport({ scale });
@@ -63,13 +83,38 @@
       canvas.width = scaledViewport.width;
       canvas.height = scaledViewport.height;
 
-      page.render({
+      await page.render({
         canvasContext: ctx,
         viewport: scaledViewport
-      });
-    });
+      }).promise;
 
-    // Optional: re-render on resize
+      annotationLayer.innerHTML = '';
+      annotationLayer.style.width = `${scaledViewport.width}px`;
+      annotationLayer.style.height = `${scaledViewport.height}px`;
+
+      const annotations = await page.getAnnotations();
+
+      pdfjsLib.AnnotationLayer.render({
+        annotations,
+        div: annotationLayer,
+        page,
+        viewport: scaledViewport,
+        linkService: new pdfjsLib.SimpleLinkService()
+      });
+
+      // Open all links in a new tab
+      annotationLayer.querySelectorAll('a[href]').forEach(link => {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      });
+
+      // Fade in once everything is ready
+      requestAnimationFrame(() => {
+        container.classList.add('visible');
+      });
+    }
+
+    renderPDF();
     window.addEventListener('resize', () => location.reload());
   </script>
 </body>
