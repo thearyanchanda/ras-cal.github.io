@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ras-cal.com</title>
+  <title>Obsidian Falcon</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     html, body {
@@ -11,6 +11,7 @@
       height: 100%;
       background: black;
       overflow: hidden;
+      font-family: sans-serif;
     }
 
     #pdf-wrapper {
@@ -38,10 +39,9 @@
     <div id="annotation-layer" class="annotationLayer"></div>
   </div>
 
-  <!-- UMD PDF.js -->
+  <!-- UMD PDF.js v2.x -->
   <script src="pdf.min.js"></script>
   <script>
-    // Point the worker to the local file
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
     const url = 'cover.pdf'; // Your local PDF
@@ -53,7 +53,7 @@
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
 
-      // PDFLinkService allows clickable links
+      // PDFLinkService enables clickable links
       const linkService = new pdfjsLib.PDFLinkService();
       linkService.setDocument(pdf);
 
@@ -76,20 +76,19 @@
       pdfWrapper.style.width = `${scaled.width}px`;
       pdfWrapper.style.height = `${scaled.height}px`;
 
-      // Render the page
+      // Render PDF page
       await page.render({
         canvasContext: ctx,
         viewport: scaled
       }).promise;
 
-      // Clear and prepare annotation layer
+      // Clear old annotations
       annotationLayer.innerHTML = '';
       annotationLayer.style.width = `${scaled.width}px`;
       annotationLayer.style.height = `${scaled.height}px`;
 
+      // Get and render annotations (links)
       const annotations = await page.getAnnotations();
-
-      // Render clickable annotations
       pdfjsLib.AnnotationLayer.render({
         annotations,
         div: annotationLayer,
@@ -98,7 +97,7 @@
         linkService
       });
 
-      // Make all links open in a new tab
+      // Make links open in a new tab
       annotationLayer.querySelectorAll('a[href]').forEach(a => {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
