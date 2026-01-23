@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Amber Falcon</title>
+  <title>Crimson Horizon</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     html, body {
@@ -11,13 +11,6 @@
       height: 100%;
       background: black;
       overflow: hidden;
-      font-family: sans-serif;
-      color: white;
-    }
-
-    h1 {
-      text-align: center;
-      margin: 0.5em 0;
     }
 
     #pdf-wrapper {
@@ -40,20 +33,18 @@
   </style>
 </head>
 <body>
-  <h1>Amber Falcon</h1>
   <div id="pdf-wrapper">
     <canvas id="pdf-canvas"></canvas>
     <div id="annotation-layer" class="annotationLayer"></div>
   </div>
 
-  <!-- Using ES Module PDF.js -->
   <script type="module">
     import * as pdfjsLib from './pdf.mjs';
 
-    // Worker module path
+    // Worker path
     pdfjsLib.GlobalWorkerOptions.workerSrc = './pdf.worker.mjs';
 
-    const url = 'cover.pdf'; // your PDF file
+    const url = 'cover.pdf';
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
     const annotationLayer = document.getElementById('annotation-layer');
@@ -61,11 +52,6 @@
 
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
-
-      // Use PDFLinkService from pdfjsLib
-      const linkService = new pdfjsLib.PDFLinkService();
-      linkService.setDocument(pdf);
-
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 1 });
 
@@ -91,15 +77,15 @@
 
       const annotations = await page.getAnnotations();
 
+      // Render annotations (links will work automatically)
       pdfjsLib.AnnotationLayer.render({
         annotations,
         div: annotationLayer,
         page,
-        viewport: scaled,
-        linkService
+        viewport: scaled
       });
 
-      // Open links in a new tab
+      // Ensure links open in a new tab
       annotationLayer.querySelectorAll('a[href]').forEach(a => {
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
