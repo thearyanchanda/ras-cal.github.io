@@ -1,105 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>PDF Viewer</title>
-
-<style>
-  html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    background: black;
-  }
-
-  #pdf-wrapper {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-  }
-
-  canvas {
-    display: block;
-  }
-
-  .annotationLayer {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-
-  /* debug: show link areas */
-  .annotationLayer a {
-    outline: 2px solid rgba(0,255,0,.7);
-    background: rgba(0,255,0,.15);
-  }
-</style>
-</head>
-
-<body>
-<div id="pdf-wrapper">
-  <canvas id="pdf-canvas"></canvas>
-  <div id="annotation-layer" class="annotationLayer"></div>
-</div>
-
+<html>
+<body style="background:black;color:white">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-const url = 'https://arxiv.org/pdf/2203.00001.pdf';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const canvas = document.getElementById('pdf-canvas');
-const ctx = canvas.getContext('2d');
-const annotationLayer = document.getElementById('annotation-layer');
-
-async function render() {
-  const pdf = await pdfjsLib.getDocument(url).promise;
-
-  const linkService = new pdfjsLib.PDFLinkService();
-  linkService.setDocument(pdf);
-
-  const page = await pdf.getPage(1);
-  const viewport = page.getViewport({ scale: 1 });
-
-  const scale = Math.min(
-    window.innerWidth / viewport.width,
-    window.innerHeight / viewport.height
-  );
-
-  const scaled = page.getViewport({ scale });
-
-  canvas.width = scaled.width;
-  canvas.height = scaled.height;
-
-  await page.render({
-    canvasContext: ctx,
-    viewport: scaled
-  }).promise;
-
-  annotationLayer.style.width = scaled.width + 'px';
-  annotationLayer.style.height = scaled.height + 'px';
-  annotationLayer.innerHTML = '';
-
-  const annotations = await page.getAnnotations();
-
-  pdfjsLib.AnnotationLayer.render({
-    annotations,
-    div: annotationLayer,
-    page,
-    viewport: scaled,
-    linkService
-  });
-
-  annotationLayer.querySelectorAll('a[href]').forEach(a => {
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-  });
-}
-
-render();
-window.addEventListener('resize', render);
+  document.body.innerHTML =
+    typeof pdfjsLib === 'undefined'
+      ? '❌ pdfjsLib NOT loaded'
+      : '✅ pdfjsLib loaded';
 </script>
 </body>
 </html>
