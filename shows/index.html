@@ -97,7 +97,6 @@ async function renderPDF() {
       const rect = pdfjsLib.Util.normalizeRect(ann.rect);
       const a = document.createElement('a');
       a.href = ann.url;
-      a.target = '_blank';
       a.rel = 'noopener noreferrer';
 
       a.style.left = rect[0] * scale + 'px';
