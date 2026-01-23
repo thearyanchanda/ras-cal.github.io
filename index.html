@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PDF Viewer</title>
+<title>PDF</title>
 
 <style>
   html, body {
@@ -46,6 +46,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   // 🔑 CRITICAL LINE
+  pdfjsLib.getDocument('cover.pdf').promise
+  .then(doc => console.log('Loaded PDF:', doc.numPages))
+  .catch(err => console.error(err));
+  
   pdfjsLib.disableWorker = true;
 
   const url = 'https://arxiv.org/pdf/2203.00001.pdf';
