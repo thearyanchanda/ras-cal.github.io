@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Crimson Horizon</title>
+<title>Crimson Comet</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   html, body {
@@ -74,23 +74,24 @@ async function renderPDF() {
   canvas.style.width = `${scaled.width}px`;
   canvas.style.height = `${scaled.height}px`;
 
-  // Center canvas using margins
-  canvas.style.marginTop = `${(wrapper.clientHeight - scaled.height) / 2}px`;
-  canvas.style.marginLeft = `${(wrapper.clientWidth - scaled.width) / 2}px`;
+  // Center canvas
+  const canvasTop = (wrapper.clientHeight - scaled.height) / 2;
+  const canvasLeft = (wrapper.clientWidth - scaled.width) / 2;
+  canvas.style.marginTop = canvasTop + 'px';
+  canvas.style.marginLeft = canvasLeft + 'px';
 
-  // Resize annotation layer to match canvas
+  // Resize and position annotation layer
   annotationLayer.style.width = `${scaled.width}px`;
   annotationLayer.style.height = `${scaled.height}px`;
-  annotationLayer.style.left = canvas.offsetLeft + 'px';
-  annotationLayer.style.top = canvas.offsetTop + 'px';
+  annotationLayer.style.top = canvasTop + 'px';
+  annotationLayer.style.left = canvasLeft + 'px';
   annotationLayer.innerHTML = '';
 
   // Render PDF page
   await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-  // Get annotations
+  // Render clickable annotations
   const annotations = await page.getAnnotations({ intent: 'display' });
-
   annotations.forEach(ann => {
     if (ann.subtype === 'Link' && ann.url) {
       const rect = pdfjsLib.Util.normalizeRect(ann.rect);
@@ -98,13 +99,10 @@ async function renderPDF() {
       a.href = ann.url;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
-
-      const view = scaled;
-      a.style.left = `${rect[0] * view.scale}px`;
-      a.style.top = `${(view.height - rect[3]) * view.scale}px`;
-      a.style.width = `${(rect[2] - rect[0]) * view.scale}px`;
-      a.style.height = `${(rect[3] - rect[1]) * view.scale}px`;
-
+      a.style.left = `${rect[0] * scale}px`;
+      a.style.top = `${(scaled.height - rect[3] * scale)}px`;
+      a.style.width = `${(rect[2] - rect[0]) * scale}px`;
+      a.style.height = `${(rect[3] - rect[1]) * scale}px`;
       annotationLayer.appendChild(a);
     }
   });
