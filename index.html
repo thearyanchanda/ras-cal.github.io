@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Crimson Comet</title>
+<title>ras coll</title>
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   html, body {
@@ -20,9 +20,8 @@
   }
 
   #pdf-canvas {
+    position: absolute;
     display: block;
-    margin: auto;
-    position: relative;
   }
 
   .annotationLayer {
@@ -68,29 +67,29 @@ async function renderPDF() {
   );
   const scaled = page.getViewport({ scale });
 
-  // Resize canvas
+  // Canvas size
   canvas.width = scaled.width;
   canvas.height = scaled.height;
-  canvas.style.width = `${scaled.width}px`;
-  canvas.style.height = `${scaled.height}px`;
 
-  // Center canvas
-  const canvasTop = (wrapper.clientHeight - scaled.height) / 2;
+  // Center canvas absolutely inside wrapper
   const canvasLeft = (wrapper.clientWidth - scaled.width) / 2;
-  canvas.style.marginTop = canvasTop + 'px';
-  canvas.style.marginLeft = canvasLeft + 'px';
+  const canvasTop = (wrapper.clientHeight - scaled.height) / 2;
+  canvas.style.left = canvasLeft + 'px';
+  canvas.style.top = canvasTop + 'px';
+  canvas.style.width = scaled.width + 'px';
+  canvas.style.height = scaled.height + 'px';
 
-  // Resize and position annotation layer
-  annotationLayer.style.width = `${scaled.width}px`;
-  annotationLayer.style.height = `${scaled.height}px`;
-  annotationLayer.style.top = canvasTop + 'px';
+  // Resize annotation layer
+  annotationLayer.style.width = scaled.width + 'px';
+  annotationLayer.style.height = scaled.height + 'px';
   annotationLayer.style.left = canvasLeft + 'px';
+  annotationLayer.style.top = canvasTop + 'px';
   annotationLayer.innerHTML = '';
 
   // Render PDF page
   await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-  // Render clickable annotations
+  // Render clickable links
   const annotations = await page.getAnnotations({ intent: 'display' });
   annotations.forEach(ann => {
     if (ann.subtype === 'Link' && ann.url) {
@@ -99,17 +98,23 @@ async function renderPDF() {
       a.href = ann.url;
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
-      a.style.left = `${rect[0] * scale}px`;
-      a.style.top = `${(scaled.height - rect[3] * scale)}px`;
-      a.style.width = `${(rect[2] - rect[0]) * scale}px`;
-      a.style.height = `${(rect[3] - rect[1]) * scale}px`;
+
+      a.style.left = rect[0] * scale + 'px';
+      a.style.top = (scaled.height - rect[3] * scale) + 'px';
+      a.style.width = (rect[2] - rect[0]) * scale + 'px';
+      a.style.height = (rect[3] - rect[1]) * scale + 'px';
+
       annotationLayer.appendChild(a);
     }
   });
 }
 
+// Initial render
 renderPDF();
+
+// Re-render on resize and mobile orientation change
 window.addEventListener('resize', renderPDF);
+window.addEventListener('orientationchange', renderPDF);
 </script>
 </body>
 </html>
