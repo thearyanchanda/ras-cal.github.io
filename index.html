@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ras-cal</title>
+  <title>Azure Falcon</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     html, body {
@@ -17,6 +17,7 @@
 
     #pdf-wrapper {
       position: relative;
+      display: inline-block;
     }
 
     canvas {
@@ -36,6 +37,8 @@
       color: #00f;
       background: transparent;
       cursor: pointer;
+      display: block;
+      position: absolute;
     }
   </style>
 </head>
@@ -72,45 +75,40 @@
       canvas.style.width = `${scaled.width}px`;
       canvas.style.height = `${scaled.height}px`;
 
-      // Resize annotation layer
+      // Resize wrapper & annotation layer
+      pdfWrapper.style.width = `${scaled.width}px`;
+      pdfWrapper.style.height = `${scaled.height}px`;
       annotationLayer.style.width = `${scaled.width}px`;
       annotationLayer.style.height = `${scaled.height}px`;
 
-      // Render page
+      // Render PDF page
       await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
-      // Clear annotation layer
+      // Clear old annotations
       annotationLayer.innerHTML = '';
 
       // Get annotations
       const annotations = await page.getAnnotations({ intent: 'display' });
 
-      // Manually create clickable links
+      // Render clickable links at correct positions
       annotations.forEach(ann => {
         if (ann.subtype === 'Link' && ann.url) {
-          const rect = pdfjsLib.Util.normalizeRect([
-            ann.rect[0],
-            ann.rect[1],
-            ann.rect[2],
-            ann.rect[3]
-          ]);
-          const view = scaled;
+          const rect = pdfjsLib.Util.normalizeRect(ann.rect);
           const a = document.createElement('a');
           a.href = ann.url;
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
-          a.style.position = 'absolute';
+
+          // Flip y-coordinates because PDF origin is bottom-left
+          const view = scaled;
           a.style.left = `${rect[0] * view.scale}px`;
           a.style.top = `${(view.height - rect[3]) * view.scale}px`;
           a.style.width = `${(rect[2] - rect[0]) * view.scale}px`;
           a.style.height = `${(rect[3] - rect[1]) * view.scale}px`;
+
           annotationLayer.appendChild(a);
         }
       });
-
-      // Center pdf-wrapper (optional if viewport smaller than window)
-      pdfWrapper.style.marginLeft = `${(window.innerWidth - canvas.width) / 2}px`;
-      pdfWrapper.style.marginTop = `${(window.innerHeight - canvas.height) / 2}px`;
     }
 
     renderPDF();
