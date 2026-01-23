@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>EPK - ras-cal.com</title>
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <style>
   html, body {
     margin: 0;
@@ -46,11 +46,12 @@
   <div id="annotation-layer" class="annotationLayer"></div>
 </div>
 
-<script src="pdf.min.js"></script>
+<script src="/pdf.min.js"></script>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
-const url = 'epk.pdf';
+const url = '/epk/epk.pdf';
+  
 const canvas = document.getElementById('pdf-canvas');
 const ctx = canvas.getContext('2d');
 const annotationLayer = document.getElementById('annotation-layer');
@@ -96,7 +97,6 @@ async function renderPDF() {
       const rect = pdfjsLib.Util.normalizeRect(ann.rect);
       const a = document.createElement('a');
       a.href = ann.url;
-      a.target = '_blank';
       a.rel = 'noopener noreferrer';
 
       a.style.left = rect[0] * scale + 'px';
