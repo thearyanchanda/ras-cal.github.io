@@ -1,12 +1,54 @@
 <!DOCTYPE html>
-<html>
-<body style="background:black;color:white">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PDF Viewer</title>
+
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+  }
+
+  #viewer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  .annotationLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  /* optional: show link hitboxes */
+  .annotationLayer a {
+    outline: 2px solid rgba(0,255,0,.6);
+    background: rgba(0,255,0,.15);
+  }
+</style>
+</head>
+
+<body>
+<div id="viewer">
+  <canvas id="pdf-canvas"></canvas>
+  <div id="annotation-layer" class="annotationLayer"></div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-  document.body.innerHTML =
-    typeof pdfjsLib === 'undefined'
-      ? '❌ pdfjsLib NOT loaded'
-      : '✅ pdfjsLib loaded';
-</script>
-</body>
-</html>
+  // 🔑 CRITICAL LINE
+  pdfjsLib.disableWorker = true;
+
+  const url = 'https://arxiv.org/pdf/2203.00001.pdf';
+
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2
