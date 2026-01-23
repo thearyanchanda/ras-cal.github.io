@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ras.cal</title>
+  <title>ras-cal</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     html, body {
@@ -10,14 +10,13 @@
       width: 100%;
       height: 100%;
       background: black;
-      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     #pdf-wrapper {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
+      position: relative;
     }
 
     canvas {
@@ -33,7 +32,8 @@
 
     .annotationLayer a {
       border: none;
-      text-decoration: none;
+      text-decoration: underline;
+      color: #00f;
       background: transparent;
       cursor: pointer;
     }
@@ -58,8 +58,8 @@
     async function renderPDF() {
       const pdf = await pdfjsLib.getDocument(url).promise;
       const page = await pdf.getPage(1);
-      const viewport = page.getViewport({ scale: 1 });
 
+      const viewport = page.getViewport({ scale: 1 });
       const scale = Math.min(
         window.innerWidth / viewport.width,
         window.innerHeight / viewport.height
@@ -72,33 +72,45 @@
       canvas.style.width = `${scaled.width}px`;
       canvas.style.height = `${scaled.height}px`;
 
-      pdfWrapper.style.width = `${scaled.width}px`;
-      pdfWrapper.style.height = `${scaled.height}px`;
+      // Resize annotation layer
+      annotationLayer.style.width = `${scaled.width}px`;
+      annotationLayer.style.height = `${scaled.height}px`;
 
       // Render page
       await page.render({ canvasContext: ctx, viewport: scaled }).promise;
 
       // Clear annotation layer
       annotationLayer.innerHTML = '';
-      annotationLayer.style.width = `${scaled.width}px`;
-      annotationLayer.style.height = `${scaled.height}px`;
 
       // Get annotations
-      const annotations = await page.getAnnotations();
+      const annotations = await page.getAnnotations({ intent: 'display' });
 
-      // Render annotations (links clickable)
-      pdfjsLib.AnnotationLayer.render({
-        annotations,
-        div: annotationLayer,
-        page,
-        viewport: scaled
+      // Manually create clickable links
+      annotations.forEach(ann => {
+        if (ann.subtype === 'Link' && ann.url) {
+          const rect = pdfjsLib.Util.normalizeRect([
+            ann.rect[0],
+            ann.rect[1],
+            ann.rect[2],
+            ann.rect[3]
+          ]);
+          const view = scaled;
+          const a = document.createElement('a');
+          a.href = ann.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.style.position = 'absolute';
+          a.style.left = `${rect[0] * view.scale}px`;
+          a.style.top = `${(view.height - rect[3]) * view.scale}px`;
+          a.style.width = `${(rect[2] - rect[0]) * view.scale}px`;
+          a.style.height = `${(rect[3] - rect[1]) * view.scale}px`;
+          annotationLayer.appendChild(a);
+        }
       });
 
-      // Make all links open in a new tab
-      annotationLayer.querySelectorAll('a[href]').forEach(a => {
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-      });
+      // Center pdf-wrapper (optional if viewport smaller than window)
+      pdfWrapper.style.marginLeft = `${(window.innerWidth - canvas.width) / 2}px`;
+      pdfWrapper.style.marginTop = `${(window.innerHeight - canvas.height) / 2}px`;
     }
 
     renderPDF();
