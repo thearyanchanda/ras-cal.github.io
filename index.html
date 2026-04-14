@@ -30,34 +30,14 @@
   }
 
   .annotationLayer a {
-  will-change: transform;
+    border: none;
+    text-decoration: underline;
+    color: #00f;
+    background: transparent;
+    cursor: pointer;
+    position: absolute;
+    display: block;
   }
-
-  .annotationLayer a {
-  border: none;
-  text-decoration: underline;
-  color: #00f;
-  background: transparent;
-  cursor: pointer;
-  position: absolute;
-  display: block;
-
-  transform-origin: center;
-  animation: breathe 2.5s ease-in-out infinite;
-  }
-
-  @keyframes breathe {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.06);
-  }
-  100% {
-    transform: scale(1);
-  }
-  }
-}
 </style>
 </head>
 <body>
