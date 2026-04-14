@@ -30,6 +30,10 @@
   }
 
   .annotationLayer a {
+  will-change: transform;
+  }
+
+  .annotationLayer a {
   border: none;
   text-decoration: underline;
   color: #00f;
@@ -38,22 +42,20 @@
   position: absolute;
   display: block;
 
-  animation: pulse 2.2s infinite ease-in-out;
   transform-origin: center;
+  animation: breathe 2.5s ease-in-out infinite;
   }
 
-  @keyframes pulse {
+  @keyframes breathe {
   0% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 120, 255, 0.6);
   }
-  70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(0, 120, 255, 0);
+  50% {
+    transform: scale(1.06);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(0, 120, 255, 0);
+  }
   }
 }
 </style>
